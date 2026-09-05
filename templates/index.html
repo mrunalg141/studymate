@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudyMate</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+    <span>StudyMate</span>
+        <button id="clear-btn" title="Clear chat history">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+       </svg>
+       </button>
+       </div>
+        <div id="chat-box">
+            {% for msg in messages %}
+            <div class="message user">{{ msg.user_message }}</div>
+            <div class="message bot">{{ msg.bot_reply }}</div>
+            {% endfor %}
+        </div>
+
+        <div class="upload-area">
+        <label for="pdf-upload" class="upload-dropzone" id="upload-dropzone">
+        <div class="upload-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+        </div>
+        <div class="upload-text">
+            <span class="upload-title" id="file-name-display">Choose a PDF to upload</span>
+            <span class="upload-subtitle">or drag and drop here</span>
+        </div>
+    </label>
+    <input type="file" id="pdf-upload" accept="application/pdf" hidden>
+    <button id="upload-btn" class="upload-submit-btn">
+        Upload
+    </button>
+    </div>
+    <div id="upload-status" class="upload-status-text"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Type a message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
