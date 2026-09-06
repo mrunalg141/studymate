@@ -1,12 +1,9 @@
-﻿import os
-os.environ["HF_HUB_OFFLINE"] = "1"
-os.environ["OMP_NUM_THREADS"] = str(os.cpu_count())
-import time
+﻿import time
 import chromadb
 from pypdf import PdfReader
 from fastembed import TextEmbedding
 
-embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+embedder = TextEmbedding(model_name="BAAI/bge-small-en-v1.5", providers=["CPUExecutionProvider"])
 
 print("DEBUG - warming up embedder...")
 _warmup_start = time.time()
@@ -56,10 +53,8 @@ def index_pdf(path, doc_id):
 def retrieve_context(question, top_k=3, threshold=1.8):
     q_embedding = list(embedder.embed([question]))[0].tolist()
     results = collection.query(query_embeddings=[q_embedding], n_results=top_k)
-
     print("DEBUG - documents found:", len(results["documents"][0]))
     print("DEBUG - distances:", results["distances"][0])
-
     if not results["documents"][0]:
         return ""
     distances = results["distances"][0]
