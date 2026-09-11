@@ -1,7 +1,9 @@
 import os
 import time
+import uuid
+from pathlib import Path
 from app.rag import embedder
-from fastapi import FastAPI, Request, UploadFile, File
+from fastapi import FastAPI, Request, UploadFile, File, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -25,7 +27,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 init_db()
 init_documents_table()
 
-os.makedirs("./uploads", exist_ok=True)
+UPLOAD_DIR = Path("./uploads").resolve()
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 class ChatMessage(BaseModel):
     message: str
@@ -51,8 +54,15 @@ def read_root(request: Request):
 async def upload_pdf(file: UploadFile = File(...)):
     pdf_bytes = await file.read()
 
-    # Save file to disk so index_pdf can read it
-    save_path = f"./uploads/{file.filename}"
+    original_filename = file.filename or "uploaded.pdf"
+
+    # Save file using a server-side safe and unique filename
+    safe_filename = f"{uuid.uuid4().hex}.pdf"
+    save_path = (UPLOAD_DIR / safe_filename).resolve()
+
+    if not save_path.is_relative_to(UPLOAD_DIR):
+        raise HTTPException(status_code=400, detail="Invalid file destination path.")
+
     with open(save_path, "wb") as f:
         f.write(pdf_bytes)
 
@@ -62,12 +72,12 @@ async def upload_pdf(file: UploadFile = File(...)):
     for page in reader.pages:
         extracted_text += page.extract_text() or ""
 
-    save_document(file.filename, extracted_text)
+    save_document(original_filename, extracted_text)
 
     # Index into vector DB for RAG retrieval
-    num_chunks = index_pdf(save_path, doc_id=file.filename)
+    num_chunks = index_pdf(str(save_path), doc_id=original_filename)
 
-    return {"message": f"'{file.filename}' uploaded successfully.", "chunks": num_chunks}
+    return {"message": f"'{original_filename}' uploaded successfully.", "chunks": num_chunks}
 
 @app.post("/chat")
 def chat(chat_message: ChatMessage):
