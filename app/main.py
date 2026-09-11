@@ -1,10 +1,13 @@
 import os
+import time
+from app.rag import embedder
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from pypdf import PdfReader
 import io
+from app.rag import index_pdf, clear_collection
 
 from app.rag import index_pdf
 from app.llm import get_ai_reply
@@ -26,6 +29,14 @@ os.makedirs("./uploads", exist_ok=True)
 
 class ChatMessage(BaseModel):
     message: str
+
+@app.get("/test-embed")
+def test_embed():
+    texts = ["This is a test sentence about machine learning."] * 8
+    t0 = time.time()
+    embeddings = list(embedder.embed(texts))
+    elapsed = time.time() - t0
+    return {"elapsed_seconds": elapsed}
 
 @app.get("/")
 def read_root(request: Request):
@@ -64,7 +75,10 @@ def chat(chat_message: ChatMessage):
     save_message(chat_message.message, bot_reply)
     return {"reply": bot_reply}
 
+
 @app.post("/clear")
 def clear_chat():
     clear_messages()
-    return {"message": "Chat history cleared."}
+    clear_collection()
+    return {"message": "Chat history and uploaded documents cleared."}
+

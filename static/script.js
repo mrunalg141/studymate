@@ -98,7 +98,7 @@ uploadBtn.addEventListener("click", async () => {
     formData.append("file", file);
 
     uploadBtn.disabled = true;
-    uploadStatus.textContent = "Uploading...";
+    uploadStatus.textContent = "Processing PDF, this may take 10-20 seconds...";
     uploadStatus.className = "upload-status-text";
 
     try {
